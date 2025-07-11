@@ -46,6 +46,7 @@ class AlertManagerBot:
             )
 
             if self.has_power is None:
+                self.send_text("---")
                 self.send_text("Primera detección de luz. Todo bien.")
 
             if not self.has_power:
