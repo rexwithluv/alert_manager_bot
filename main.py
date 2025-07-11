@@ -17,7 +17,7 @@ class AlertManagerBot:
 
     @staticmethod
     def format_actual_datetime() -> str:
-        now = datetime.datetime.now(tz=datetime.timezone.tzname("Europe/Madrid"))
+        now = datetime.datetime.now(tz=datetime.UTC)
         date = now.date()
 
         day = date.day
