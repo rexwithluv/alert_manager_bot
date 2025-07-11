@@ -1,0 +1,13 @@
+[tool.ruff]
+select = ["ALL"]
+typing-modules = ["typing"]
+
+ignore = [
+    "D100",
+    "D101",
+    "D102",
+    "D107",
+]
+
+[tool.ruff.pydocstyle]
+convention = "google"
