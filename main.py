@@ -11,13 +11,13 @@ config = dotenv_values(".env")
 
 class AlertManagerBot:
     def __init__(self) -> None:
-        self.api_key = config.get("API_KEY")
+        self.api_key: str = config.get("API_KEY")
         self.chat_id: str = config.get("PRIVATE_CHAT_ID")
         self.has_power: bool = None
 
     @staticmethod
     def format_actual_datetime() -> str:
-        now = datetime.datetime.now()
+        now = datetime.datetime.now(tz=datetime.timezone.tzname("Europe/Madrid"))
         date = now.date()
 
         day = date.day
@@ -29,30 +29,31 @@ class AlertManagerBot:
         return f"{day:02d}/{month:02d} - {hour:02d}:{minute:02d}"
 
     def send_text(self, msg: str) -> requests.Response:
-        url = f"https://api.telegram.org/bot{self.api_key}/sendMessage?chat_id={self.chat_id}&parse_mode=HTML&text={msg}"
+        datetime = self.format_actual_datetime()
+        url = f"https://api.telegram.org/bot{self.api_key}/sendMessage?chat_id={self.chat_id}&parse_mode=HTML&text={datetime}{msg}"
 
         return requests.get(url, timeout=10)
 
-    def change_power_status(self, powerReturn: bool) -> None:
-        datetime: str = self.format_actual_datetime()
-        text: str = "Respira tranquilo que la luz ha vuelto."
+    def check_if_has_power(self) -> None:
 
-        if not powerReturn:
-            text = "Oye, que no tengo conexión con tu casa, hazlo mirar."
 
-        self.send_text(f"{datetime} | {text}")
-
-    def check_if_has_power(self):
         try:
-            subprocess.run(["ping", "-c", "1", "pikapi"], check=True)
+            subprocess.run(
+                ["/bin/ping", "-c", "1", "pikapi"],
+                check=True,
+                timeout=5,
+            )
 
-            self.send_text("He hecho un ping, todo bien!")
+            if self.has_power is None:
+                self.send_text("Primera detección de luz. Todo bien.")
 
             if not self.has_power:
                 self.send_text("Respira tranquilo que la luz ha vuelto.")
-                self.has_power = True
-        except subprocess.CalledProcessError:
+
+            self.has_power = True
+        except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             if self.has_power:
+                self.send_text(f"Error! {e}")
                 self.send_text("Oye, que no tengo conexión con tu casa, hazlo mirar.")
                 self.has_power = False
 

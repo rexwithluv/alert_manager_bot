@@ -1,0 +1,24 @@
+name: Despliegue
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Conectarse al servidor y desplegar
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_KEY }}
+          script: |
+            cd ${{ secrets.PATH }}
+            git fetch origin main
+            git reset --hard origin/main
+            docker compose --profile prod down -v --rmi local
+            docker compose --profile prod up -d --build

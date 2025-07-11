@@ -2,4 +2,5 @@ services:
   alert_manager:
     build: .
     container_name: alert-manager-bot
-    # restart: "unless-stopped"
+    restart: "unless-stopped"
+    network_mode: "host"
