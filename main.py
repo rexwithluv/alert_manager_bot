@@ -30,7 +30,8 @@ class AlertManagerBot:
 
     def send_text(self, msg: str) -> requests.Response:
         datetime = self.format_actual_datetime()
-        url = f"https://api.telegram.org/bot{self.api_key}/sendMessage?chat_id={self.chat_id}&parse_mode=HTML&text={datetime}{msg}"
+        text = f"{datetime} | {msg}"
+        url = f"https://api.telegram.org/bot{self.api_key}/sendMessage?chat_id={self.chat_id}&parse_mode=HTML&text={text}"
 
         return requests.get(url, timeout=10)
 

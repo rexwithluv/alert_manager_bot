@@ -20,5 +20,5 @@ jobs:
             cd ${{ secrets.PATH }}
             git fetch origin main
             git reset --hard origin/main
-            docker compose down -v --rmi local
+            docker compose down --rmi local
             docker compose up -d --build
