@@ -8,6 +8,7 @@ ignore = [
     "D102",
     "D103",
     "D107",
+    "S603",
 ]
 
 [tool.ruff.pydocstyle]

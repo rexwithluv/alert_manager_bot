@@ -36,13 +36,14 @@ class AlertManagerBot:
         return requests.get(url, timeout=10)
 
     def check_if_has_power(self) -> None:
-
+        hostname: str = config.get("PING_HOSTNAME_OR_IP")
+        timeout: int = config.get("PING_TIMEOUT")
 
         try:
             subprocess.run(
-                ["/bin/ping", "-c", "1", "pikapi"],
+                ["/bin/ping", "-c", "1", hostname],
                 check=True,
-                timeout=5,
+                timeout=timeout,
             )
 
             if self.has_power is None:
