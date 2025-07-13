@@ -44,6 +44,8 @@ class AlertManagerBot:
                 ["/bin/ping", "-c", "1", hostname],
                 check=True,
                 timeout=timeout,
+                capture_output=True,
+                text=True,
             )
 
             if self.has_power is None:
@@ -57,6 +59,8 @@ class AlertManagerBot:
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             if self.has_power:
                 self.send_text(f"Error! {e}")
+                self.send_text(f"Stderr: {e.stderr}")
+                self.send_text(f"Stdout: {e.stdout}")
                 self.send_text("Oye, que no tengo conexión con tu casa, hazlo mirar.")
                 self.has_power = False
 
