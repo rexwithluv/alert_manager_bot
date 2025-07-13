@@ -37,11 +37,12 @@ class AlertManagerBot:
 
     def check_if_has_power(self) -> None:
         hostname: str = config.get("PING_HOSTNAME_OR_IP")
+        ping_count: int = int(config.get("PING_COUNT"))
         timeout: int = int(config.get("PING_TIMEOUT"))
 
         try:
             subprocess.run(
-                ["/bin/ping", "-c", "1", hostname],
+                ["/bin/ping", "-c", ping_count, hostname],
                 check=True,
                 timeout=timeout,
                 capture_output=True,
@@ -59,7 +60,6 @@ class AlertManagerBot:
         except (subprocess.CalledProcessError, subprocess.TimeoutExpired) as e:
             if self.has_power:
                 self.send_text(f"Error! {e}")
-                self.send_text(f"Stderr: {e.stderr}")
                 self.send_text(f"Stdout: {e.stdout}")
                 self.send_text("Oye, que no tengo conexión con tu casa, hazlo mirar.")
                 self.has_power = False
