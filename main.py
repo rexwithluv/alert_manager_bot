@@ -37,7 +37,7 @@ class AlertManagerBot:
 
     def check_if_has_power(self) -> None:
         hostname: str = config.get("PING_HOSTNAME_OR_IP")
-        ping_count: int = int(config.get("PING_COUNT"))
+        ping_count: str = config.get("PING_COUNT")
         timeout: int = int(config.get("PING_TIMEOUT"))
 
         try:
