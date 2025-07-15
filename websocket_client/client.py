@@ -1,9 +1,9 @@
 import asyncio
 import logging
+import os
 import socket
 
 import websockets
-from dotenv import dotenv_values
 
 
 class WebSocketClient:
@@ -36,8 +36,7 @@ if __name__ == "__main__":
     logging.getLogger("websockets.legacy.server").setLevel(logging.WARNING)
     logging.getLogger("websockets.legacy.client").setLevel(logging.WARNING)
 
-    config = dotenv_values(".env")
-    ws_server_url = config.get("WS_SERVER_URL")
+    ws_server_url = os.getenv("WS_SERVER_URL")
 
     client = WebSocketClient(ws_server_url)
     asyncio.run(client.run())

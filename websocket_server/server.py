@@ -1,9 +1,9 @@
 import asyncio
 import logging
+import os
 from asyncio.exceptions import CancelledError
 
 import websockets
-from dotenv import dotenv_values
 from telegram import Bot
 from telegram.error import TelegramError
 from websockets.exceptions import (
@@ -100,10 +100,8 @@ if __name__ == "__main__":
     logging.getLogger("websockets.legacy.server").setLevel(logging.WARNING)
     logging.getLogger("websockets.legacy.client").setLevel(logging.WARNING)
 
-    config = dotenv_values(".env")
-
-    telegram_api_key = config.get("TELEGRAM_API_KEY")
-    telegram_chat_id = config.get("TELEGRAM_CHAT_ID")
+    telegram_api_key = os.getenv("TELEGRAM_API_KEY")
+    telegram_chat_id = os.getenv("TELEGRAM_CHAT_ID")
 
     bot = TelegramBot(telegram_api_key, telegram_chat_id)
     server = WebSocketServer("0.0.0.0", 8765, bot)

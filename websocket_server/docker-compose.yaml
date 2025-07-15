@@ -1,0 +1,10 @@
+services:
+  alert_manager:
+    build: .
+    container_name: alert-manager-bot-server
+    ports:
+      - 8765:8765
+    environment:
+      - TELEGRAM_API_KEY=${TELEGRAM_API_KEY}
+      - TELEGRAM_CHAT_ID=${TELEGRAM_CHAT_ID}
+    restart: "unless-stopped"

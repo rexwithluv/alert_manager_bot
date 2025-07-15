@@ -1,0 +1,8 @@
+services:
+  alert_manager:
+    build: .
+    container_name: alert-manager-bot-client
+    environment:
+      - WS_SERVER_URL=${WS_SERVER_URL}
+    restart: "unless-stopped"
+    network_mode: "host"
