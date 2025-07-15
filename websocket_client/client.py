@@ -1,20 +1,21 @@
 import asyncio
 import logging
-from asyncio.exceptions import CancelledError
+import socket
 
 import websockets
 from dotenv import dotenv_values
-from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
 
 class WebSocketClient:
     def __init__(self, url: str) -> None:
-        self.url = url
+        self.url: str = url
+        self.hostname: str = socket.gethostname()
         self.logger = logging.getLogger(__name__)
 
     async def run(self) -> None:
         async with websockets.connect(self.url) as ws:
             self.logger.info("Conectado al servidor WS en %s", self.url)
+            await ws.send(self.hostname)
 
             async for _ in ws:
                 await ws.send("pong")

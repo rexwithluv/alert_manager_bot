@@ -43,26 +43,29 @@ class WebSocketServer:
         self.tasks: set = set()
         self.bot: TelegramBot = bot
 
-    async def send_ping(self, ws: WebSocketServerProtocol) -> None:
+    async def send_ping(
+        self,
+        ws: WebSocketServerProtocol,
+        client_hostname: str,
+    ) -> None:
         try:
             while True:
                 await ws.send("ping")
                 self.logger.info("Mensaje enviado")
                 await asyncio.sleep(5)
+
         except (ConnectionClosedOK, ConnectionClosedError, ConnectionClosed):
-            await self.bot.send_message(
-                "La conexión se cerró mientras se enviaba un ping.",
-            )
-            self.logger.info("La conexión se cerró mientras se enviaba un ping.")
+            message: str = f"Se cerró la conexión con: {client_hostname}."
+            self.logger.info(message)
+            await self.bot.send_message(message)
 
     async def handler(self, ws: WebSocketServerProtocol) -> None:
-        client_address = ws.remote_address[0]
-        await self.bot.send_message(f"Cliente conectado: {client_address}")
-        self.logger.info("Cliente conectado: %s", client_address)
+        client_hostname = await ws.recv()
+        self.logger.info("Cliente conectado: %s", client_hostname)
+        await self.bot.send_message(f"Cliente conectado: {client_hostname}")
 
-        ping_task = asyncio.create_task(self.send_ping(ws))
+        ping_task = asyncio.create_task(self.send_ping(ws, client_hostname))
         self.tasks.add(ping_task)
-
         ping_task.add_done_callback(self.tasks.discard)
 
         async for message in ws:
