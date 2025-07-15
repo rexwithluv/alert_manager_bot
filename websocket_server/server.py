@@ -3,38 +3,41 @@ import logging
 from asyncio.exceptions import CancelledError
 
 import websockets
-from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
+from websockets.exceptions import (
+    ConnectionClosed,
+    ConnectionClosedError,
+    ConnectionClosedOK,
+)
 from websockets.server import WebSocketServerProtocol
 
 
 class WebSocketServer:
-    logger = logging.getLogger(__name__)
-
     def __init__(self, ip: str = "0.0.0.0", port: int = 8765) -> None:
-        self.ip = ip
-        self.port = port
+        self.ip: str = ip
+        self.port: int = port
+        self.tasks: set = set()
+        self.logger = logging.getLogger(__name__)
 
     async def send_ping(self, ws: WebSocketServerProtocol) -> None:
-        while True:
-            await ws.send("ping")
-            self.logger.info("Mensaje enviado")
-            await asyncio.sleep(5)
+        try:
+            while True:
+                await ws.send("ping")
+                self.logger.info("Mensaje enviado")
+                await asyncio.sleep(5)
+        except (ConnectionClosedOK, ConnectionClosedError, ConnectionClosed):
+            self.logger.info("La conexión se cerró mientras se enviaba un ping.")
 
     async def handler(self, ws: WebSocketServerProtocol) -> None:
         client_address = ws.remote_address[0]
         self.logger.info("Cliente conectado: %s", client_address)
 
-        try:
-            while True:
-                ping_task = asyncio.create_task(self.send_ping(ws))
+        ping_task = asyncio.create_task(self.send_ping(ws))
+        self.tasks.add(ping_task)
 
-                async for message in ws:
-                    self.logger.info("Mensaje recibido: %s", message)
+        ping_task.add_done_callback(self.tasks.discard)
 
-        except ConnectionClosedOK:
-            self.logger.info("Cliente desconectado correctamente: %s", client_address)
-        except ConnectionClosedError:
-            self.logger.error("Cliente desconectado (error): %s", client_address)
+        async for message in ws:
+            self.logger.info("Mensaje recibido: %s", message)
 
     async def run(self) -> None:
         try:

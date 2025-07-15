@@ -8,33 +8,16 @@ from websockets.exceptions import ConnectionClosedError, ConnectionClosedOK
 
 
 class WebSocketClient:
-    logger = logging.getLogger(__name__)
-
     def __init__(self, url: str) -> None:
         self.url = url
+        self.logger = logging.getLogger(__name__)
 
     async def run(self) -> None:
-        try:
-            async with websockets.connect(self.url) as ws:
-                self.logger.info("Conectado al servidor WS en %s", self.url)
+        async with websockets.connect(self.url) as ws:
+            self.logger.info("Conectado al servidor WS en %s", self.url)
 
-                async for _ in ws:
-                    await ws.send("pong")
-
-        except ConnectionClosedOK:
-            self.logger.error("Conexión cerrada con el servidor")
-        except ConnectionClosedError:
-            self.logger.error(
-                "Error de conexión. Intentando reconectar en 5 segundos",
-            )
-            await asyncio.sleep(5)
-        except ConnectionRefusedError:
-            self.logger.error(
-                "Conexión rechazada. ¿Está el server WS activo en %s?",
-                self.url,
-            )
-        except CancelledError:
-            self.logger.error("Cancelado a petición del usuario.")
+            async for _ in ws:
+                await ws.send("pong")
 
 
 if __name__ == "__main__":
