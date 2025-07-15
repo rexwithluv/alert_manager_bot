@@ -3,6 +3,9 @@ import logging
 from asyncio.exceptions import CancelledError
 
 import websockets
+from dotenv import dotenv_values
+from telegram import Bot
+from telegram.error import TelegramError
 from websockets.exceptions import (
     ConnectionClosed,
     ConnectionClosedError,
@@ -11,12 +14,34 @@ from websockets.exceptions import (
 from websockets.server import WebSocketServerProtocol
 
 
+class TelegramBot:
+    def __init__(self, api_key: str, chat_id: str) -> None:
+        self.api_key = api_key
+        self.chat_id = chat_id
+
+    async def send_message(self, message: str) -> None:
+        try:
+            bot = Bot(self.api_key)
+
+            await bot.send_message(chat_id=self.chat_id, text=message)
+            WebSocketServer.logger.info("Mensaje de telegram enviado: %s", message)
+        except TelegramError as e:
+            WebSocketServer.logger.error("No se pudo mandar el mensaje: %s", e)
+
+
 class WebSocketServer:
-    def __init__(self, ip: str = "0.0.0.0", port: int = 8765) -> None:
+    logger = logging.getLogger(__name__)
+
+    def __init__(
+        self,
+        ip: str = "0.0.0.0",
+        port: int = 8765,
+        bot: TelegramBot = None,
+    ) -> None:
         self.ip: str = ip
         self.port: int = port
         self.tasks: set = set()
-        self.logger = logging.getLogger(__name__)
+        self.bot: TelegramBot = bot
 
     async def send_ping(self, ws: WebSocketServerProtocol) -> None:
         try:
@@ -25,10 +50,14 @@ class WebSocketServer:
                 self.logger.info("Mensaje enviado")
                 await asyncio.sleep(5)
         except (ConnectionClosedOK, ConnectionClosedError, ConnectionClosed):
+            await self.bot.send_message(
+                "La conexión se cerró mientras se enviaba un ping.",
+            )
             self.logger.info("La conexión se cerró mientras se enviaba un ping.")
 
     async def handler(self, ws: WebSocketServerProtocol) -> None:
         client_address = ws.remote_address[0]
+        await self.bot.send_message(f"Cliente conectado: {client_address}")
         self.logger.info("Cliente conectado: %s", client_address)
 
         ping_task = asyncio.create_task(self.send_ping(ws))
@@ -68,5 +97,11 @@ if __name__ == "__main__":
     logging.getLogger("websockets.legacy.server").setLevel(logging.WARNING)
     logging.getLogger("websockets.legacy.client").setLevel(logging.WARNING)
 
-    server = WebSocketServer()
+    config = dotenv_values(".env")
+
+    telegram_api_key = config.get("TELEGRAM_API_KEY")
+    telegram_chat_id = config.get("TELEGRAM_CHAT_ID")
+
+    bot = TelegramBot(telegram_api_key, telegram_chat_id)
+    server = WebSocketServer("0.0.0.0", 8765, bot)
     asyncio.run(server.run())
