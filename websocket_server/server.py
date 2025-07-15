@@ -53,23 +53,26 @@ class WebSocketServer:
                 await ws.send("ping")
                 self.logger.info("Mensaje enviado")
                 await asyncio.sleep(5)
-
         except (ConnectionClosedOK, ConnectionClosedError, ConnectionClosed):
-            message: str = f"Se cerró la conexión con: {client_hostname}."
-            self.logger.info(message)
-            await self.bot.send_message(message)
+            self.logger.info("Ha fallado el ping con: %s", client_hostname)
 
     async def handler(self, ws: WebSocketServerProtocol) -> None:
-        client_hostname = await ws.recv()
-        self.logger.info("Cliente conectado: %s", client_hostname)
-        await self.bot.send_message(f"Cliente conectado: {client_hostname}")
+        try:
+            client_hostname = await ws.recv()
+            self.logger.info("Cliente conectado: %s", client_hostname)
+            await self.bot.send_message(f"Cliente conectado: {client_hostname}")
 
-        ping_task = asyncio.create_task(self.send_ping(ws, client_hostname))
-        self.tasks.add(ping_task)
-        ping_task.add_done_callback(self.tasks.discard)
+            ping_task = asyncio.create_task(self.send_ping(ws, client_hostname))
+            self.tasks.add(ping_task)
+            ping_task.add_done_callback(self.tasks.discard)
 
-        async for message in ws:
-            self.logger.info("Mensaje recibido: %s", message)
+            async for message in ws:
+                self.logger.info("Mensaje recibido: %s", message)
+
+        except (ConnectionClosedOK, ConnectionClosedError, ConnectionClosed):
+            close_message: str = f"Se cerró la conexión con: {client_hostname}"
+            self.logger.info(close_message)
+            await self.bot.send_message(close_message)
 
     async def run(self) -> None:
         try:
@@ -78,7 +81,9 @@ class WebSocketServer:
                 "0.0.0.0",
                 8765,
             ) as server:
-                self.logger.info("Servidor Websocket iniciado en ws://0.0.0.0:8765")
+                init_message: str = "Servidor Websocket iniciado en ws://0.0.0.0:8765"
+                self.logger.info(init_message)
+                await self.bot.send_message(init_message)
                 await server.serve_forever()
 
         except CancelledError:
