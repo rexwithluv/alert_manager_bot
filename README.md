@@ -6,4 +6,16 @@ El código consiste en un servidor websocket que corre sobre el equipo que tiene
 
 ## Uso
 
-Por el momento sin implementar, se prevee intentar que ambos corran sobre contenedores docker.
+### Levantar el servidor
+
+```bash
+cd websocket_server
+docker compose up -d --build
+```
+
+### Levantar el cliente
+
+```bash
+cd websocket_client
+docker compose up -d --build
+```
