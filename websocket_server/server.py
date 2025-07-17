@@ -52,7 +52,7 @@ class WebSocketServer:
             while True:
                 await ws.send("ping")
                 self.logger.info("Mensaje enviado")
-                await asyncio.sleep(5)
+                await asyncio.sleep(os.getenv("PING_INTERVAL"))
         except (ConnectionClosedOK, ConnectionClosedError, ConnectionClosed):
             self.logger.info("Ha fallado el ping con: %s", client_hostname)
 

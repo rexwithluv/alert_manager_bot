@@ -20,7 +20,6 @@ def parser() -> argparse.Namespace:
         "--client",
         action="store_true",
         help="Specify is the directory to send is the client directory.",
-        required=True,
     )
     return parser.parse_args()
 
